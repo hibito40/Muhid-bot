@@ -14,16 +14,16 @@ login({ appState }, (err, api) => {
     if (!event.body) return;
 
     const message = event.body.toLowerCase();
-    if (!message.startsWith("/")) return;
+    if (!message.startsWith("#")) return;
 
     const args = message.slice(1).split(" ");
     const command = args.shift();
 
     try {
-      const cmd = require(`./commands/${command}.js`);
+      const cmd = require(`.#commands#${command}.js`);
       cmd.run({ api, event, args });
     } catch (e) {
-      api.sendMessage("❌ কমান্ড খুঁজে পাইনি।", event.threadID);
+      api.sendMessage("Hello guys 😚🤞,kamon acho sobai.!", event.threadID);
     }
   });
 });
