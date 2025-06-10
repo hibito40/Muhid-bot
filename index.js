@@ -1,29 +1,33 @@
 const login = require("fb-chat-api");
 const fs = require("fs-extra");
 
-const appState = JSON.parse(fs.readFileSync("appstate.json", "utf-8"));
+const appState = require("./appstate.json");
+const config = require("./config.json");
 
 login({ appState }, (err, api) => {
-  if (err) return console.error("Login failed:", err);
+  if (err) return console.error(err);
 
-  api.setOptions({ listenEvents: true, selfListen: false });
-  console.log("🤖 Fahim Bot is now running...");
+  api.setOptions({ listenEvents: true });
+  console.log(`${config.botName} is now active!`);
 
-  api.listenMqtt((err, event) => {
+  api.listenMqtt((err, message) => {
     if (err) return console.error(err);
-    if (!event.body) return;
 
-    const message = event.body.toLowerCase();
-    if (!message.startsWith("#")) return;
+    if (!message.body) return;
 
-    const args = message.slice(1).split(" ");
-    const command = args.shift();
+    const prefix = config.prefix;
+    const body = message.body;
 
-    try {
-      const cmd = require(`.#commands#${command}.js`);
-      cmd.run({ api, event, args });
-    } catch (e) {
-      api.sendMessage("Hello guys 😚🤞,kamon acho sobai.!", event.threadID);
+    if (body.startsWith(prefix)) {
+      const args = body.slice(prefix.length).trim().split(/ +/);
+      const command = args.shift().toLowerCase();
+
+      try {
+        const commandFile = require(`./commands/${command}.js`);
+        commandFile.run({ api, message, args, config });
+      } catch (err) {
+        api.sendMessage("❌ কমান্ড পাওয়া যায়নি!", message.threadID);
+      }
     }
   });
 });
